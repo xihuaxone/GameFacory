@@ -5,10 +5,28 @@ import sys
 from configs.config import *
 from source.base import Clock, Global, CMap
 from source.factories import BackGroundFactory, CharacterFactory
+from utils import Coordinate
 
 pygame.init()
 
 RUNNING = True
+
+
+MouseMotion = [None, None, None]
+
+
+def mouse_motion_react():
+    if MouseMotion[2] is not None:
+        nc_pos = MouseMotion[0]
+        if not isinstance(nc_pos, tuple):
+            raise Exception('mouse motion event catch err. %s'
+                            % str(MouseMotion))
+        nc_speed = Coordinate.subtract(MouseMotion[2], MouseMotion[0])
+        nc_speed = Coordinate.multiply(nc_speed, 20)
+        nc = CharacterFactory.produce(Characters.awesome_demon, 0.3)
+        nc.update_center(*nc_pos)
+        nc.update_speed(nc_speed)
+        MouseMotion[0] = MouseMotion[1] = MouseMotion[2] = None
 
 
 def run():
@@ -49,6 +67,14 @@ def run():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     RUNNING = not RUNNING
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                MouseMotion[0] = event.pos
+            elif event.type == pygame.MOUSEMOTION:
+                MouseMotion[1] = event.pos
+            elif event.type == pygame.MOUSEBUTTONUP:
+                MouseMotion[2] = event.pos
+
+        mouse_motion_react()
 
         if not RUNNING:
             Clock.tick(FPS)

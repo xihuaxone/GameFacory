@@ -214,7 +214,7 @@ class FrictionObj(GravityObj):
     def friction_speed_fix(self):
         a_f = Formulas.friction_acceleration_cal(self.k_friction, Global.gravity)
         t = Clock.get_trend_spf()
-        available_t = t if self.speed[1] == 0 else t / 3
+        available_t = t if self.speed[1] == 0 else t / 2
         dv_x = a_f * available_t
         dx = dv_x * FRAME_METRE_RATIO
         if abs(dx) > abs(self.speed[0]):

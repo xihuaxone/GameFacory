@@ -1,6 +1,3 @@
-from copy import copy
-from typing import List
-
 from configs.config import *
 from source.background import Background
 from source.base import Global, CollideReaction, Clock, CMap
@@ -63,6 +60,8 @@ class BorderCollideReact(object):
 
 class MoveObj(object):
     def __init__(self):
+        self.mass = 50
+        self.k_restitution = GRAVITY_RESTITUTION_COEFFICIENT
         self._speed = [0, 0]
         self.mv_stock_x = 0
         self.mv_stock_y = 0
@@ -115,23 +114,33 @@ class MoveObj(object):
         if (self._speed[1] > 0 > by_speed[1]) or (self._speed[1] < 0 < by_speed[1]):
             self.reverse_y()
 
-    def feedback(self, by_speed, by_center):
-        def cal_new_speed(p_center_me, speed_vec_me, p_center_other):
-            p_speed_me = Coordinate.sum(p_center_me, speed_vec_me)
-            p_foot = Coordinate.get_foot_point(p_speed_me, [p_center_me, p_center_other])
-            tan_speed = Coordinate.subtract(p_speed_me, p_foot)
-            normal_speed = Coordinate.subtract(p_foot, p_center_me)
-            return tan_speed, normal_speed
+    def feedback(self, by_speed, by_center, by_mass):
+        me_center = getattr(self, 'center')
+        other_center = by_center
 
-        speed_me = copy(self._speed)
-        p_me = getattr(self, 'center')
-        speed_other = by_speed
-        p_other = by_center
+        me_top = Coordinate.sum(me_center, self._speed)
+        me_ns, me_ts = Coordinate.decompose_vertex(
+            [me_center, me_top], [me_center, other_center])
 
-        remain_speed, _ = cal_new_speed(p_me, speed_me, p_other)
-        _, gain_speed = cal_new_speed(p_other, speed_other, p_me)
-        new_speed = Coordinate.sum(remain_speed, gain_speed)
-        self.update_speed(new_speed)
+        by_top = Coordinate.sum(by_center, by_speed)
+        _, by_ts = Coordinate.decompose_vertex(
+            [other_center, by_top], [other_center, me_center])
+
+        me_new_ts = self.tan_speed_fix(me_ts, by_ts, by_mass)
+        me_new_ts = me_ts if not me_new_ts else me_new_ts
+
+        me_new_ns = self.normal_speed_fix(me_ns)
+        me_new_ns = me_ns if not me_new_ns else me_new_ns
+
+        me_new_speed = Coordinate.sum(me_new_ts, me_new_ns)
+
+        self.update_speed(me_new_speed)
+
+    def tan_speed_fix(self, me_ts, by_ts, by_mass):
+        pass
+
+    def normal_speed_fix(self, me_ns):
+        pass
 
     def _border_collide_check(self):
         if self.border_collied_react == CollideReaction.ignore:
@@ -169,8 +178,6 @@ class Gravity(object):
 class GravityObj(MoveObj):
     def __init__(self):
         MoveObj.__init__(self)
-        self.k_restitution = GRAVITY_RESTITUTION_COEFFICIENT
-        self.mass = 50000
 
     def gravity_speed_fix(self):
         v_y = Formulas.speed_after_collide(
@@ -179,6 +186,24 @@ class GravityObj(MoveObj):
             self.k_restitution)
         delta_speed_y = v_y * FRAME_METRE_RATIO
         self.update_speed_y(delta_speed_y)
+
+    def tan_speed_fix(self, me_ts, by_ts, by_mass):
+        me_abs_ts = Coordinate.cal_vertex_len(me_ts)
+        by_abs_ts = Coordinate.cal_vertex_len(by_ts)
+
+        if (me_ts[0] * by_ts[0] >= 0) and me_ts[1] * by_ts[1] >= 0:
+            by_dir = 1
+        else:
+            by_dir = -1
+
+        v_new = Formulas.speed_after_collide(self.mass, by_mass, me_abs_ts / FMR, by_dir * by_abs_ts / FMR, self.k_restitution)
+
+        _k = v_new * FMR / me_abs_ts if me_abs_ts else 0
+        me_new_ts = Coordinate.multiply(me_ts, _k)
+        return me_new_ts
+
+    def normal_speed_fix(self, me_ns):
+        return me_ns
 
 
 class FrictionObj(GravityObj):
@@ -197,6 +222,9 @@ class FrictionObj(GravityObj):
         else:
             dx = - dx if self.speed[0] > 0 else 0 if self.speed[0] == 0 else dx
         self.fix_speed([dx, 0])
+
+    def normal_speed_fix(self, me_ns):
+        return me_ns
 
 
 class Collide(object):

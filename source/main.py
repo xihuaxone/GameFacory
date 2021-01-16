@@ -18,20 +18,20 @@ def run():
     scr_w, scr_h = Global.screen_size
 
     speeds = [
-        [2400, 0],
-        [-2350, 0]
+        [300, 0],
+        [290, 0]
     ]
 
     positions = [
-        [300, 1000],
-        [1300, 1000]
+        [100, 1500],
+        [270, 1500]
     ]
 
-    for _ in range(1):
+    for _ in range(5):
         c_awesome_dm = CharacterFactory.produce(Characters.awesome_demon, 0.3)
         c_awesome_dm.update_speed([random.randint(-2000, 2000), random.randint(-2000, 2000)])
         # c_awesome_dm.update_speed(speeds[_])
-        # c_awesome_dm.update_center(*positions[0])
+        # c_awesome_dm.update_center(*positions[_])
         ts = time.time()
         while pygame.sprite.spritecollide(c_awesome_dm, sprite_group, False):
             if time.time() - ts > 5 * 1000:
@@ -42,9 +42,9 @@ def run():
 
         sprite_group.add(c_awesome_dm)
 
-    while True:  # 死循环确保窗口一直显示
-        for event in pygame.event.get():  # 遍历所有事件
-            if event.type == pygame.QUIT:  # 如果单击关闭窗口，则退出
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -66,11 +66,11 @@ def run():
             character.fix_position()
             character.blit()
 
-        pygame.display.flip()  # 更新全部显示
+        pygame.display.flip()
 
         Clock.tick(FPS)
 
-    pygame.quit()  # 退出pygame
+    pygame.quit()
 
 
 if __name__ == '__main__':

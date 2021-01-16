@@ -1,6 +1,4 @@
-import random
-from copy import copy
-from time import time
+from copy import deepcopy
 
 import pygame
 import pygame.gfxdraw
@@ -26,7 +24,6 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
         self.damage = 100
         self.weight = 0
         self.radius = (self._surface.get_width() + self._surface.get_height()) / 4
-        print(self.radius, self._surface.get_width())
         self.c_id = CMap.register(self)
 
     def destroy(self):
@@ -45,12 +42,11 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
         fix_vertex = Collide.cal_circle_pierce_fix_vertex(
             self.center, by_center, self.radius, by_radius)
         fixed_center = Coordinate.sum(self.center, fix_vertex)
+        self.update_center(fixed_center[0], fixed_center[1])
 
-        self.update_center(int(fixed_center[0]), int(fixed_center[1]))
-
-    def take_collide(self, by_center, by_speed, by_radius, *args, **kwargs):
+    def take_collide(self, by_center, by_speed, by_radius, by_mass, *args, **kwargs):
         self.piercing_fix(by_center, by_radius)
-        self.feedback(by_speed, by_center)
+        self.feedback(by_speed, by_center, by_mass)
 
     def take_damage(self, damage):
         self.health = self.health + min(self.defence - damage, 0)
@@ -61,22 +57,10 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
                 continue
             distance = Coordinate.cal_distance(self.center, other.center)
             if distance <= (self.radius + other.radius):
-                other_speed = copy(other.speed)
-                other_center = copy(CMap.get_c_center(other.c_id))
-                other.take_collide(self.center, self.speed, self.radius)
-                self.take_collide(other_center, other_speed, other.radius)
-
-    # def fix_trends_step(self, x_collided, y_collided, step_x, step_y):
-    #     if y_collided and self.rect.bottom >= Global.screen_size[1]\
-    #             and abs(step_y) <= math.ceil(120 / FPS):
-    #         self.update_speed_y(0)
-    #         step_y = 0
-    #
-    #     if y_collided and abs(step_x) <= 120 / FPS:
-    #         self.update_speed_x(0)
-    #         step_x = 0
-    #
-    #     return [step_x, step_y]
+                other_speed = deepcopy(other.speed)
+                other_center = deepcopy(CMap.get_c_center(other.c_id))
+                other.take_collide(self.center, self.speed, self.radius, self.mass)
+                self.take_collide(other_center, other_speed, other.radius, other.mass)
 
     def do_move(self):
         self._border_collide_check()

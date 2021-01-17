@@ -250,7 +250,7 @@ class GravityObj(BorderRebound):
             _k = v_new * FMR / me_abs_ts
             me_new_ts = Coordinate.multiply(me_ts, _k)
         else:
-            _k = v_new * FMR / by_abs_ts
+            _k = v_new * FMR / by_abs_ts if by_abs_ts else 0
             me_new_ts = Coordinate.multiply(by_ts, _k)
         return me_new_ts
 

@@ -45,7 +45,7 @@ GRAVITY_RESTITUTION_COEFFICIENT = 0.8  # 非完全弹性碰撞的恢复系数
 DEFAULT_FRICTION_COEFFICIENT = 0.6  # 默认的动摩擦因数，所有实现摩擦反馈的对象，都默认采用该值
 K_GLOBAL_FRICTION = 0.1  # 全局动摩擦因数，如果是平视图画面，则相当于空气摩擦因数；如果是俯视图画面，则相当于地面的动摩擦因数；
 
-TEST_MODE = True  # 测试模式，会显示图形对象的rect矩形边，以及碰撞检测的圆形边缘
+TEST_MODE = False  # 测试模式，会显示图形对象的rect矩形边，以及碰撞检测的圆形边缘
 FPS_WATCH = False  # 监控帧率
 
 

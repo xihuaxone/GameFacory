@@ -39,6 +39,7 @@ class AreaFactory(object):
     @staticmethod
     def produce(a_type, radius):
         if a_type == Areas.billiard_holes:
+            middle_holes_radius = radius / 1.3
             scr_w, scr_h = Global.screen_size
             right_top = BilliardHole(
                 [scr_w, 0], radius, 90, 180,
@@ -56,12 +57,12 @@ class AreaFactory(object):
                 [0, 0], radius, 0, 90, [0, radius], [0, radius])
 
             middle_top = BilliardHole(
-                [scr_w / 2, 0], radius, 0, 180,
+                [scr_w / 2, 0], middle_holes_radius, 0, 180,
                 [(scr_w - radius) / 2, (scr_w + radius) / 2],
                 [0, radius])
 
             middle_bottom = BilliardHole(
-                [scr_w / 2, scr_h], radius, 180, 0,
+                [scr_w / 2, scr_h], middle_holes_radius, 180, 0,
                 [(scr_w - radius) / 2, (scr_w + radius) / 2],
                 [scr_h - radius, scr_h])
 

@@ -1,7 +1,5 @@
 import random
-
 import pygame
-
 from configs.config import *
 
 
@@ -137,48 +135,64 @@ class GlobalClock(object):
         return self.__clock.get_fps()
 
 
-class CharacterMap(object):
-    __c_map = {}
-    _max_count = 99999
+class MapBase(object):
+    def __init__(self):
+        self._map = {}
+        self._max_count = 99999
+        self.__wait_delete = []
 
-    def iter_characters(self):
-        for c in self.__c_map.values():
+    def iter_members(self):
+        for c in self._map.values():
             yield c
 
     def register(self, character):
         c_id = random.randint(0, self._max_count)
-        while c_id in self.__c_map:
+        while c_id in self._map:
             c_id = random.randint(0, self._max_count)
-        self.__c_map[c_id] = character
+        self._map[c_id] = character
         return c_id
 
     def drop(self, c_id):
-        self.__c_map.pop(c_id)
+        self._map.pop(c_id)
 
-    def __get_attr(self, c_id, attr):
-        c = self.__c_map.get(c_id, None)
+    def _get_attr(self, c_id, attr):
+        c = self._map.get(c_id, None)
         if c:
             return getattr(c, attr)
         else:
             return None
 
     def exist(self, c_id):
-        return c_id in self.__c_map
+        return c_id in self._map
 
     def drop_if_exists(self, c_id):
         if self.exist(c_id):
             self.drop(c_id)
 
+    def delay_delete(self, c_id):
+        self.__wait_delete.append(c_id)
+
+    def clear_dead(self):
+        for c_id in self.__wait_delete:
+            self.drop_if_exists(c_id)
+
+
+class CharacterMap(MapBase):
     def get_c_speed(self, c_id):
-        return self.__get_attr(c_id, 'speed')
+        return self._get_attr(c_id, 'speed')
 
     def get_c_center(self, c_id):
-        return self.__get_attr(c_id, 'center')
+        return self._get_attr(c_id, 'center')
 
     def get_c_radius(self, c_id):
-        return self.__get_attr(c_id, 'radius')
+        return self._get_attr(c_id, 'radius')
+
+
+class DeadAreaMap(MapBase):
+    pass
 
 
 CMap = CharacterMap()
+DAMap = DeadAreaMap()
 
 Clock = GlobalClock()

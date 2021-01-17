@@ -2,37 +2,24 @@ import random
 import time
 import pygame
 import sys
+
 from configs.config import *
-from source.base import Clock, Global, CMap
-from source.factories import BackGroundFactory, CharacterFactory
-from utils import Coordinate
+from source.base import Clock, Global, CMap, DAMap
+from source.factories import BackGroundFactory, CharacterFactory, AreaFactory
+from source.utils import Coordinate
 
 pygame.init()
 
 RUNNING = True
 
-
 MouseMotion = [None, None, None]
 
 
-def mouse_motion_react():
-    if MouseMotion[2] is not None:
-        nc_pos = MouseMotion[0]
-        if not isinstance(nc_pos, tuple):
-            raise Exception('mouse motion event catch err. %s'
-                            % str(MouseMotion))
-        nc_speed = Coordinate.subtract(MouseMotion[2], MouseMotion[0])
-        nc_speed = Coordinate.multiply(nc_speed, 20)
-        nc = CharacterFactory.produce(Characters.awesome_demon, 0.3)
-        nc.update_center(*nc_pos)
-        nc.update_speed(nc_speed)
-        MouseMotion[0] = MouseMotion[1] = MouseMotion[2] = None
+def gen_holes(ball_radius):
+    AreaFactory.produce(Areas.billiard_holes, ball_radius)
 
 
-def run():
-    global RUNNING
-    sprite_group = pygame.sprite.Group()
-    background = BackGroundFactory.produce(BackGrounds.lustful_demon)
+def gen_balls():
     scr_w, scr_h = Global.screen_size
 
     speeds = [
@@ -45,11 +32,13 @@ def run():
         [270, 1500]
     ]
 
-    for _ in range(5):
-        c_awesome_dm = CharacterFactory.produce(Characters.awesome_demon, 0.3)
+    sprite_group = pygame.sprite.Group()
+
+    for _ in range(0):
+        c_awesome_dm = CharacterFactory.produce(Characters.billiard, 50)
         c_awesome_dm.update_speed([random.randint(-2000, 2000), random.randint(-2000, 2000)])
-        # c_awesome_dm.update_speed(speeds[_])
-        # c_awesome_dm.update_center(*positions[_])
+        c_awesome_dm.update_speed(speeds[_])
+        c_awesome_dm.update_center(*positions[_])
         ts = time.time()
         while pygame.sprite.spritecollide(c_awesome_dm, sprite_group, False):
             if time.time() - ts > 5 * 1000:
@@ -59,6 +48,29 @@ def run():
                 random.randint(0, scr_h - c_awesome_dm.rect.h)
 
         sprite_group.add(c_awesome_dm)
+
+
+def mouse_motion_react():
+    if MouseMotion[2] is not None:
+        nc_pos = MouseMotion[0]
+        if not isinstance(nc_pos, tuple):
+            raise Exception('mouse motion event catch err. %s'
+                            % str(MouseMotion))
+        nc_speed = Coordinate.subtract(MouseMotion[2], MouseMotion[0])
+        nc_speed = Coordinate.multiply(nc_speed, 20)
+        nc = CharacterFactory.produce(Characters.billiard, 50)
+        nc.update_center(*nc_pos)
+        nc.update_speed(nc_speed)
+        MouseMotion[0] = MouseMotion[1] = MouseMotion[2] = None
+
+
+def run():
+    global RUNNING
+    background = BackGroundFactory.produce(BackGrounds.lustful_demon)
+
+    gen_balls()
+
+    gen_holes(70)
 
     while True:
         for event in pygame.event.get():
@@ -84,13 +96,21 @@ def run():
 
         background.blit()
 
-        for character in CMap.iter_characters():
+        for h in DAMap.iter_members():
+            h.blit()
+
+        for character in CMap.iter_members():
             character.do_move()
 
-        for character in CMap.iter_characters():
+        for character in CMap.iter_members():
             character.collide_react()
             character.fix_position()
+            character.damage_settle()
+            if character.health == 0:
+                character.destroy()
             character.blit()
+
+        CMap.clear_dead()
 
         pygame.display.flip()
 

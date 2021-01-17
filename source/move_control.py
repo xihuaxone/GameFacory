@@ -1,6 +1,6 @@
 from configs.config import *
 from source.background import Background
-from source.base import Global, CollideReaction, Clock, CMap
+from source.base import Global, CollideReaction, Clock
 from source.utils import Coordinate, Formulas
 
 
@@ -198,8 +198,12 @@ class GravityObj(MoveObj):
 
         v_new = Formulas.speed_after_collide(self.mass, by_mass, me_abs_ts / FMR, by_dir * by_abs_ts / FMR, self.k_restitution)
 
-        _k = v_new * FMR / me_abs_ts if me_abs_ts else 0
-        me_new_ts = Coordinate.multiply(me_ts, _k)
+        if me_abs_ts:
+            _k = v_new * FMR / me_abs_ts
+            me_new_ts = Coordinate.multiply(me_ts, _k)
+        else:
+            _k = v_new * FMR / by_abs_ts
+            me_new_ts = Coordinate.multiply(by_ts, _k)
         return me_new_ts
 
     def normal_speed_fix(self, me_ns):

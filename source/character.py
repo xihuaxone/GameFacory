@@ -1,19 +1,19 @@
+import math
 from copy import deepcopy
 
 import pygame
 import pygame.gfxdraw
 from configs.config import *
-from source.base import PicBase, CMap
+from source.base import PicBase, CMap, DAMap
 from source.move_control import FrictionObj, Collide, Gravity
 from source.utils import Coordinate
 
 
 class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
-    def __init__(self, pic_path, scale_rate: float, border_collied_react):
+    def __init__(self, pic_path, scale_rate: float, border_collied_react, *args, **kwargs):
         PicBase.__init__(self)
         FrictionObj.__init__(self)
         pygame.sprite.Sprite.__init__(self)
-
         self.border_collied_react = border_collied_react
         self._surface = self.scale(self._pic_load(pic_path), scale_rate)
         self._rect = self._surface.get_rect()
@@ -22,12 +22,14 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
         self.health = 100
         self.defence = 0
         self.damage = 100
-        self.weight = 0
         self.radius = (self._surface.get_width() + self._surface.get_height()) / 4
-        self.c_id = CMap.register(self)
+        self.c_id = self.__map_register()
+
+    def __map_register(self):
+        return CMap.register(self)
 
     def destroy(self):
-        CMap.drop_if_exists(self.c_id)
+        CMap.delay_delete(self.c_id)
 
     @staticmethod
     def scale(surface_pic, scale_rate: float):
@@ -52,7 +54,7 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
         self.health = self.health + min(self.defence - damage, 0)
 
     def collide_react(self):
-        for other in CMap.iter_characters():
+        for other in CMap.iter_members():
             if other.c_id == self.c_id:
                 continue
             distance = Coordinate.cal_distance(self.center, other.center)
@@ -70,6 +72,9 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
         # trends_step = self.fix_trends_step(x_collided, y_collided, *trends_step)
         self.rect = self.rect.move(trends_step)
 
+    def damage_settle(self):
+        pass
+
     def blit(self):
         if TEST_MODE:
             x, y = self.center
@@ -77,3 +82,26 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
             pygame.gfxdraw.aacircle(self._surface_blit_on, x, y, r, (130, 130, 130))
             pygame.draw.rect(self._surface_blit_on, (130, 130, 130), self.rect, 2)
         PicBase.blit(self)
+
+
+class Billiard(Character):
+
+    def __init__(self, pic_path, scale_rate: float, border_collied_react, *args, **kwargs):
+        Character.__init__(self, pic_path, scale_rate, border_collied_react, *args, **kwargs)
+        self.radius = math.ceil(Coordinate.cal_distance([0, 0], [self._rect.w, self._rect.h]) / 2)
+
+    def _pic_load(self, *args):
+        return pygame.surface.Surface([1, 1], 0, 8)
+
+    def __map_register(self):
+        return CMap.register(self)
+    
+    def damage_settle(self):
+        for dead_area in DAMap.iter_members():
+            if dead_area.if_touched(self):
+                self.health = 0
+                break
+
+    def blit(self):
+        pygame.draw.circle(self._surface_blit_on, Color.white, self.center, self.radius)
+

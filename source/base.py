@@ -8,6 +8,7 @@ class GlobalObj(object):
     __k_gravity = GRAVITY_COEFFICIENT
     __screen = pygame.display.set_mode(INIT_SCREEN_SIZE)
     __screen_width, __screen_height = __screen.get_size()
+    __default_acceleration = DEFAULT_ACCELERATION
 
     @property
     def screen(self):
@@ -28,6 +29,10 @@ class GlobalObj(object):
     @property
     def gravity(self):
         return self.__gravity * GRAVITY_COEFFICIENT
+
+    @property
+    def acceleration(self):
+        return self.__default_acceleration
 
 
 Global = GlobalObj()

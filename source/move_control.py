@@ -5,56 +5,86 @@ from source.utils import Coordinate, Formulas
 
 
 class BorderCollideReact(object):
+    top_friction = BorderFriction.top
+    bottom_friction = BorderFriction.bottom
+    left_friction = BorderFriction.left
+    right_friction = BorderFriction.right
 
     @staticmethod
     def collide_detect(left, right, top, bottom, speed):
-        x_collide = False
-        y_collide = False
+        left_collide = right_collide = top_collide = bottom_collide = False
         scr_w, scr_h = Global.screen_size
-        if (left <= 0 and speed[0] <= 0) or (right >= scr_w and speed[0] >= 0):
-            x_collide = True
+        if left <= 0 and speed[0] <= 0:
+            left_collide = True
 
-        if (top <= 0 and speed[1] <= 0) or (bottom >= scr_h and speed[1] >= 0):
-            y_collide = True
+        if right >= scr_w and speed[0] >= 0:
+            right_collide = True
 
-        return x_collide, y_collide
+        if top <= 0 and speed[1] <= 0:
+            top_collide = True
+
+        if bottom >= scr_h and speed[1] >= 0:
+            bottom_collide = True
+
+        return left_collide, right_collide, top_collide, bottom_collide
 
     @classmethod
     def rebound(cls, move_obj):
         rect = getattr(move_obj, '_rect')
         speed = move_obj.speed
 
-        x_collide, y_collide = cls.collide_detect(
-            rect.left, rect.right, rect.top, rect.bottom, speed)
-        if x_collide:
-            move_obj.reverse_x()
-        if y_collide:
-            if move_obj.rect.top <= 0 and move_obj.speed[1] <= 0:
-                move_obj.reverse_y()
-            else:
-                move_obj.gravity_speed_fix()
-                move_obj.friction_speed_fix()
+        left_collide, right_collide, top_collide, bottom_collide = \
+            cls.collide_detect(
+                rect.left, rect.right, rect.top, rect.bottom, speed)
 
-        return x_collide, y_collide
+        if left_collide or right_collide:
+            if left_collide and BorderInelasticRebound.left:
+                move_obj.inelastic_speed_fix(BorderRebound.left)
+            elif right_collide and BorderInelasticRebound.right:
+                move_obj.inelastic_speed_fix(BorderRebound.right)
+            else:
+                move_obj.reverse_x()
+
+            if (left_collide and cls.left_friction) or \
+                    (right_collide and cls.right_friction):
+                move_obj.friction_speed_fix(
+                    [0, move_obj.speed[1]], max(Global.gravity, Global.acceleration))
+
+        if top_collide or bottom_collide:
+            if bottom_collide and BorderInelasticRebound.bottom:
+                move_obj.inelastic_speed_fix(BorderRebound.bottom)
+            elif top_collide and BorderInelasticRebound.top:
+                move_obj.inelastic_speed_fix(BorderRebound.top)
+            else:
+                move_obj.reverse_y()
+
+            if (top_collide and cls.top_friction) or \
+                    (bottom_collide and cls.bottom_friction):
+                move_obj.friction_speed_fix(
+                    [move_obj.speed[0], 0], max(Global.gravity, Global.acceleration))
+
+        return left_collide, right_collide, top_collide, bottom_collide
 
     @classmethod
     def motionless(cls, move_obj):
         rect = getattr(move_obj, '_pic_obj').rect
         speed = getattr(move_obj, '_speed')
 
-        x_collide, y_collide = cls.collide_detect(
-            rect.left, rect.right, rect.top, rect.bottom, speed)
-        if x_collide or y_collide:
-            speed[0], speed[1] = 0, 0
+        left_collide, right_collide, top_collide, bottom_collide = \
+            cls.collide_detect(
+                rect.left, rect.right, rect.top, rect.bottom, speed)
+        if left_collide or right_collide or top_collide or bottom_collide:
+            move_obj.update_speed([0, 0])
 
     @classmethod
     def destroy(cls, move_obj):
         rect = getattr(move_obj, '_pic_obj').rect
         speed = getattr(move_obj, '_speed')
 
-        x_collide, y_collide = cls.collide_detect(
-            rect.left, rect.right, rect.top, rect.bottom, speed)
-        if x_collide or y_collide:
+        left_collide, right_collide, top_collide, bottom_collide = \
+            cls.collide_detect(
+                rect.left, rect.right, rect.top, rect.bottom, speed)
+        if left_collide or right_collide or top_collide or bottom_collide:
             move_obj.destroy()
 
 
@@ -175,17 +205,42 @@ class Gravity(object):
         return 0, delta_y
 
 
-class GravityObj(MoveObj):
+class BorderRebound(MoveObj):
+    left = 'left'
+    right = 'right'
+    top = 'top'
+    bottom = 'bottom'
+
+    def _cal_new_speed(self, p_speed):
+        new_v = Formulas.speed_after_collide(
+            self.mass, Background.mass,
+            p_speed / FRAME_METRE_RATIO, 0,
+            self.k_restitution)
+        new_p_speed = new_v * FRAME_METRE_RATIO
+        return new_p_speed
+
+    def inelastic_speed_fix(self, press_direction):
+        if press_direction == self.bottom:
+            delta_speed_y = self._cal_new_speed(self.speed[1])
+            self.update_speed_y(delta_speed_y)
+        if press_direction == self.top:
+            delta_speed_y = self._cal_new_speed(self.speed[1])
+            self.update_speed_y(delta_speed_y)
+
+        if press_direction == self.left:
+            delta_speed_x = self._cal_new_speed(self.speed[0])
+            self.update_speed_x(delta_speed_x)
+        if press_direction == self.right:
+            delta_speed_x = self._cal_new_speed(self.speed[0])
+            self.update_speed_x(delta_speed_x)
+
+
+class GravityObj(BorderRebound):
     def __init__(self):
-        MoveObj.__init__(self)
+        BorderRebound.__init__(self)
 
     def gravity_speed_fix(self):
-        v_y = Formulas.speed_after_collide(
-            self.mass, Background.mass,
-            self.speed[1] / FRAME_METRE_RATIO, 0,
-            self.k_restitution)
-        delta_speed_y = v_y * FRAME_METRE_RATIO
-        self.update_speed_y(delta_speed_y)
+        self.inelastic_speed_fix(self.bottom)
 
     def tan_speed_fix(self, me_ts, by_ts, by_mass):
         me_abs_ts = Coordinate.cal_vertex_len(me_ts)
@@ -215,17 +270,24 @@ class FrictionObj(GravityObj):
         GravityObj.__init__(self)
         self.k_friction = DEFAULT_FRICTION_COEFFICIENT
 
-    def friction_speed_fix(self):
-        a_f = Formulas.friction_acceleration_cal(self.k_friction, Global.gravity)
+    def friction_speed_fix(self, f_speed: CoordinateType, press_a: float):
+        abs_f_speed = Coordinate.cal_vertex_len(f_speed)
+        a_f = Formulas.friction_acceleration_cal(self.k_friction, press_a)
         t = Clock.get_trend_spf()
-        available_t = t if self.speed[1] == 0 else t / 2
-        dv_x = a_f * available_t
+        dv_x = a_f * t
         dx = dv_x * FRAME_METRE_RATIO
-        if abs(dx) > abs(self.speed[0]):
-            dx = - self.speed[0]
+        if abs(dx) > abs_f_speed:
+            new_abs_f_speed = 0
         else:
-            dx = - dx if self.speed[0] > 0 else 0 if self.speed[0] == 0 else dx
-        self.fix_speed([dx, 0])
+            new_abs_f_speed = abs_f_speed - dx
+
+        if abs_f_speed == 0:
+            return
+        else:
+            _k = (new_abs_f_speed - abs_f_speed) / abs_f_speed
+            delta_f_speed = Coordinate.multiply(f_speed, _k)
+            print(self.speed, delta_f_speed, a_f)
+            self.fix_speed(delta_f_speed)
 
     def normal_speed_fix(self, me_ns):
         return me_ns

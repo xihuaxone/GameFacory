@@ -28,13 +28,13 @@ def gen_balls():
     ]
 
     positions = [
-        [100, 1500],
-        [270, 1500]
+        [100, 1700],
+        [270, 1700]
     ]
 
     sprite_group = pygame.sprite.Group()
 
-    for _ in range(0):
+    for _ in range(1):
         c_awesome_dm = CharacterFactory.produce(Characters.billiard, 50)
         c_awesome_dm.update_speed([random.randint(-2000, 2000), random.randint(-2000, 2000)])
         c_awesome_dm.update_speed(speeds[_])

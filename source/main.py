@@ -34,7 +34,7 @@ def gen_balls():
     sprite_group = pygame.sprite.Group()
 
     for _ in range(len(positions)):
-        c_awesome_dm = CharacterFactory.produce(Characters.billiard, 50)
+        c_awesome_dm = CharacterFactory.produce(Characters.billiard, 40)
         # c_awesome_dm.update_speed([random.randint(-2000, 2000), random.randint(-2000, 2000)])
         # c_awesome_dm.update_speed(speeds[_])
         c_awesome_dm.update_center(*positions[_])
@@ -49,21 +49,27 @@ def gen_balls():
         sprite_group.add(c_awesome_dm)
 
 
-positions = []
+hunter = None
 
 
 def mouse_motion_react():
+    global hunter
     pd, pm, pu = MouseMotion
     if pu is not None:
         nc_pos = pd
         if not isinstance(nc_pos, tuple):
             raise Exception('mouse motion event catch err. %s'
                             % str(MouseMotion))
+
         nc_speed = Coordinate.subtract(pu, pd)
         nc_speed = Coordinate.multiply(nc_speed, 20)
-        nc = CharacterFactory.produce(Characters.billiard, 50)
-        nc.update_center(*nc_pos)
-        nc.update_speed(nc_speed)
+        if not hunter or not CMap.get_character(hunter):
+            nc = CharacterFactory.produce(Characters.billiard, 40, Color.black)
+            nc.update_center(*nc_pos)
+            hunter = nc.c_id
+
+        CMap.get_character(hunter).update_speed(nc_speed)
+
         MouseMotion[0] = MouseMotion[1] = MouseMotion[2] = None
 
 
@@ -73,12 +79,11 @@ def run():
 
     gen_balls()
 
-    gen_holes(70)
+    gen_holes(50)
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print(positions)
                 sys.exit(0)
 
             elif event.type == pygame.KEYDOWN:

@@ -91,9 +91,10 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
 
 class Billiard(Character):
 
-    def __init__(self, pic_path, scale_rate: float, border_collied_react, *args, **kwargs):
+    def __init__(self, pic_path, scale_rate: float, border_collied_react, color, *args, **kwargs):
         Character.__init__(self, pic_path, scale_rate, border_collied_react, *args, **kwargs)
         self.radius = math.ceil(Coordinate.cal_distance([0, 0], [self._rect.w, self._rect.h]) / 2)
+        self.color = color
 
     def _pic_load(self, *args):
         return pygame.surface.Surface([1, 1], 0, 8)
@@ -108,5 +109,5 @@ class Billiard(Character):
                 break
 
     def blit(self):
-        pygame.draw.circle(self._surface_blit_on, Color.white, self.center, self.radius)
+        pygame.draw.circle(self._surface_blit_on, self.color, self.center, self.radius)
 

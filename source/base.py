@@ -193,6 +193,9 @@ class CharacterMap(MapBase):
     def get_c_radius(self, c_id):
         return self._get_attr(c_id, 'radius')
 
+    def get_character(self, c_id):
+        return self._map.get(c_id)
+
 
 class DeadAreaMap(MapBase):
     pass

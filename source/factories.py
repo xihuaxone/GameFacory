@@ -1,6 +1,6 @@
 from source.areas import BilliardHole
 from source.base import Global, DAMap
-from configs.config import BackGrounds, CollideReaction, Characters, Areas
+from configs.config import BackGrounds, CollideReaction, Characters, Areas, Color
 from source.background import Background
 from source.character import Character, Billiard
 
@@ -22,12 +22,12 @@ class CharacterFactory(object):
         pass
 
     @staticmethod
-    def produce(c_type, scale_rate=1.0):
+    def produce(c_type, scale_rate=1.0, color=Color.white):
         if c_type == Characters.awesome_demon:
             return Character('../images/awesome_daemon.png', scale_rate, CollideReaction.rebound)
 
         elif c_type == Characters.billiard:
-            return Billiard('', scale_rate, CollideReaction.rebound)
+            return Billiard('', scale_rate, CollideReaction.rebound, color)
         else:
             raise Exception('character %s not implemented.' % c_type)
 

@@ -1,6 +1,7 @@
 import random
 import pygame
 from configs.config import *
+from source.utils import Formulas
 
 
 class GlobalObj(object):
@@ -8,7 +9,7 @@ class GlobalObj(object):
     __k_gravity = GRAVITY_COEFFICIENT
     __screen = pygame.display.set_mode(INIT_SCREEN_SIZE)
     __screen_width, __screen_height = __screen.get_size()
-    __default_acceleration = DEFAULT_ACCELERATION
+    __K_global_friction = K_GLOBAL_FRICTION
 
     @property
     def screen(self):
@@ -31,8 +32,8 @@ class GlobalObj(object):
         return self.__gravity * GRAVITY_COEFFICIENT
 
     @property
-    def acceleration(self):
-        return self.__default_acceleration
+    def global_acceleration(self):
+        return Formulas.friction_acceleration_cal(self.__K_global_friction, self.gravity)
 
 
 Global = GlobalObj()

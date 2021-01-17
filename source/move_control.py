@@ -45,11 +45,6 @@ class BorderCollideReact(object):
             else:
                 move_obj.reverse_x()
 
-            if (left_collide and cls.left_friction) or \
-                    (right_collide and cls.right_friction):
-                move_obj.friction_speed_fix(
-                    [0, move_obj.speed[1]], max(Global.gravity, Global.acceleration))
-
         if top_collide or bottom_collide:
             if bottom_collide and BorderInelasticRebound.bottom:
                 move_obj.inelastic_speed_fix(BorderRebound.bottom)
@@ -58,10 +53,8 @@ class BorderCollideReact(object):
             else:
                 move_obj.reverse_y()
 
-            if (top_collide and cls.top_friction) or \
-                    (bottom_collide and cls.bottom_friction):
-                move_obj.friction_speed_fix(
-                    [move_obj.speed[0], 0], max(Global.gravity, Global.acceleration))
+            if bottom_collide and cls.bottom_friction:
+                move_obj.gravity_caused_friction_speed_fix()
 
         return left_collide, right_collide, top_collide, bottom_collide
 
@@ -270,9 +263,9 @@ class FrictionObj(GravityObj):
         GravityObj.__init__(self)
         self.k_friction = DEFAULT_FRICTION_COEFFICIENT
 
-    def friction_speed_fix(self, f_speed: CoordinateType, press_a: float):
+    def global_friction_speed_fix(self, f_speed: CoordinateType, press_a: float, k_friction):
         abs_f_speed = Coordinate.cal_vertex_len(f_speed)
-        a_f = Formulas.friction_acceleration_cal(self.k_friction, press_a)
+        a_f = Formulas.friction_acceleration_cal(k_friction, press_a)
         t = Clock.get_trend_spf()
         dv_x = a_f * t
         dx = dv_x * FRAME_METRE_RATIO
@@ -286,8 +279,13 @@ class FrictionObj(GravityObj):
         else:
             _k = (new_abs_f_speed - abs_f_speed) / abs_f_speed
             delta_f_speed = Coordinate.multiply(f_speed, _k)
-            print(self.speed, delta_f_speed, a_f)
             self.fix_speed(delta_f_speed)
+
+    def gravity_caused_friction_speed_fix(self):
+        if FALL_GRAVITY:
+            return self.global_friction_speed_fix(
+                [self.speed[0], 0], Global.gravity,
+                DEFAULT_FRICTION_COEFFICIENT)
 
     def normal_speed_fix(self, me_ns):
         return me_ns

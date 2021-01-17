@@ -4,7 +4,7 @@ from copy import deepcopy
 import pygame
 import pygame.gfxdraw
 from configs.config import *
-from source.base import PicBase, CMap, DAMap
+from source.base import PicBase, CMap, DAMap, Global
 from source.move_control import FrictionObj, Collide, Gravity
 from source.utils import Coordinate
 
@@ -66,10 +66,15 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
 
     def do_move(self):
         self._border_collide_check()
-        g_vertex = Gravity.speed_fix_vertex()
-        self.fix_speed(g_vertex)
+
+        if FALL_GRAVITY:
+            g_vertex = Gravity.speed_fix_vertex()
+            self.fix_speed(g_vertex)
+
+        self.global_friction_speed_fix(self.speed, Global.gravity, K_GLOBAL_FRICTION)
+
         trends_step = self._calculate_trends_step()
-        # trends_step = self.fix_trends_step(x_collided, y_collided, *trends_step)
+
         self.rect = self.rect.move(trends_step)
 
     def damage_settle(self):

@@ -69,6 +69,10 @@ class PicBase(object):
     def update_center(self, x: int, y: int):
         self.rect.center = [x, y]
 
+    def fix_center(self, dx, dy):
+        self.rect.centerx += dx
+        self.rect.centery += dy
+
     def update_position(self, left=None, right=None, top=None, bottom=None):
         if left is not None:
             self.rect.left = left

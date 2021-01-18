@@ -76,6 +76,11 @@ class Coordinate(object):
         tan_vertex = cls.subtract(foot, a)
         return normal_vertex, tan_vertex
 
+    @classmethod
+    def vertex_rorate(cls, c_vertex: CoordinateList, angle: int):
+        pass
+        # TODO 根据给定矢量（原点坐标， 顶点坐标），计算旋转一定角度后得到的新矢量；
+
 
 class Formulas(object):
     @staticmethod

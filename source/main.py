@@ -5,6 +5,7 @@ import sys
 
 from configs.config import *
 from source.base import Clock, Global, CMap, DAMap
+from source.character import TestMe
 from source.factories import BackGroundFactory, CharacterFactory, AreaFactory
 from source.utils import Coordinate
 
@@ -80,6 +81,7 @@ def run():
     gen_balls()
 
     gen_holes(50)
+    test_me = CharacterFactory.produce(Characters.test_me, 0.2)
 
     while True:
         for event in pygame.event.get():
@@ -87,16 +89,14 @@ def run():
                 sys.exit(0)
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_ESCAPE:
                     RUNNING = not RUNNING
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                MouseMotion[0] = event.pos
-            elif event.type == pygame.MOUSEMOTION:
-                MouseMotion[1] = event.pos
-            elif event.type == pygame.MOUSEBUTTONUP:
-                MouseMotion[2] = event.pos
+                    break
 
-        mouse_motion_react()
+            if RUNNING:
+                test_me.event_monitor(event)
+
+        # mouse_motion_react()
 
         if not RUNNING:
             Clock.tick(FPS)

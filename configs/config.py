@@ -24,6 +24,10 @@ class Areas(object):
     billiard_holes = 'billiard_holes'
 
 
+class AmmoTypes(object):
+    ball = 'ball'
+
+
 class CollideReaction(object):
     destroy = 'destroy'  # 碰撞即销毁
     rebound = 'rebound'  # 反弹

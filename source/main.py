@@ -2,11 +2,11 @@ import random
 import time
 import pygame
 import sys
-
 from configs.config import *
 from source.base import Clock, Global, CMap, DAMap
-from source.character import TestMe
-from source.factories import BackGroundFactory, CharacterFactory, AreaFactory
+from source.factories.area_factory import AreaFct
+from source.factories.background_factory import BGFct
+from source.factories.character_factory import CFct
 from source.utils import Coordinate
 
 pygame.init()
@@ -17,7 +17,7 @@ MouseMotion = [None, None, None]
 
 
 def gen_holes(ball_radius):
-    AreaFactory.produce(Areas.billiard_holes, ball_radius)
+    AreaFct.produce(Areas.billiard_holes, ball_radius)
 
 
 def gen_balls():
@@ -35,7 +35,7 @@ def gen_balls():
     sprite_group = pygame.sprite.Group()
 
     for _ in range(len(positions)):
-        c_awesome_dm = CharacterFactory.produce(Characters.billiard, 40)
+        c_awesome_dm = CFct.produce(Characters.billiard, 40)
         # c_awesome_dm.update_speed([random.randint(-2000, 2000), random.randint(-2000, 2000)])
         # c_awesome_dm.update_speed(speeds[_])
         c_awesome_dm.update_center(*positions[_])
@@ -65,7 +65,7 @@ def mouse_motion_react():
         nc_speed = Coordinate.subtract(pu, pd)
         nc_speed = Coordinate.multiply(nc_speed, 20)
         if not hunter or not CMap.get_character(hunter):
-            nc = CharacterFactory.produce(Characters.billiard, 40, Color.black)
+            nc = CFct.produce(Characters.billiard, 40, Color.black)
             nc.update_center(*nc_pos)
             hunter = nc.c_id
 
@@ -76,12 +76,12 @@ def mouse_motion_react():
 
 def run():
     global RUNNING
-    background = BackGroundFactory.produce(BackGrounds.lustful_demon)
+    background = BGFct.produce(BackGrounds.lustful_demon)
 
     gen_balls()
 
     gen_holes(50)
-    test_me = CharacterFactory.produce(Characters.test_me, 0.2)
+    test_me = CFct.produce(Characters.test_me, 0.2)
 
     while True:
         for event in pygame.event.get():

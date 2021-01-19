@@ -12,13 +12,13 @@ class EventMonitor(object):
 
     def catch_mouse_event(self, event, e_type):
         if e_type == pygame.MOUSEBUTTONDOWN:
-            self.l_click()
+            self.l_click(event.pos)
 
         elif e_type == pygame.MOUSEMOTION:
-            self.mouse_motion()
+            self.mouse_motion(event.pos)
 
         elif e_type == pygame.MOUSEBUTTONUP:
-            self.l_click_finish()
+            self.l_click_finish(event.pos)
 
     def catch_keyboard_event(self, event, e_type):
         if (e_type == pygame.KEYDOWN) or (e_type == pygame.KEYUP):
@@ -63,11 +63,11 @@ class EventMonitor(object):
     def speed_switch(self, press_state):
         raise NotImplementedError
 
-    def l_click(self):
+    def l_click(self, pos):
         raise NotImplementedError
 
-    def mouse_motion(self):
+    def mouse_motion(self, pos):
         raise NotImplementedError
 
-    def l_click_finish(self):
+    def l_click_finish(self, pos):
         raise NotImplementedError

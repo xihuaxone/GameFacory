@@ -81,6 +81,19 @@ class Coordinate(object):
         pass
         # TODO 根据给定矢量（原点坐标， 顶点坐标），计算旋转一定角度后得到的新矢量；
 
+    @classmethod
+    def cal_unit_vertex(cls, c1: CoordinateType, c2: CoordinateType):
+        """
+        :param c1: 矢量原点坐标
+        :param c2: 矢量顶点坐标
+        :return: 该矢量的单元矢量（即把该矢量长度缩短为1，方向不变，得到的新矢量）；
+        """
+        v = cls.subtract(c2, c1)
+        _d = cls.cal_vertex_len(v)
+        _k = 1 / _d if _d else 0
+        unit_v = Coordinate.multiply(v, _k)
+        return unit_v
+
 
 class Formulas(object):
     @staticmethod

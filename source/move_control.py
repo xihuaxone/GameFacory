@@ -71,8 +71,8 @@ class BorderCollideReact(object):
 
     @classmethod
     def destroy(cls, move_obj):
-        rect = getattr(move_obj, '_pic_obj').rect
-        speed = getattr(move_obj, '_speed')
+        rect = move_obj.rect
+        speed = move_obj.speed
 
         left_collide, right_collide, top_collide, bottom_collide = \
             cls.collide_detect(
@@ -96,24 +96,30 @@ class MoveObj(object):
     def speed(self):
         return self._speed
 
+    def set_speed_x(self, x):
+        self._speed[0] = x
+
+    def set_speed_y(self, y):
+        self._speed[1] = y
+
     def update_speed(self, speed: List[float or int]):
         self.update_speed_x(speed[0])
         self.update_speed_y(speed[1])
 
     def update_speed_x(self, x: float or int):
         if isinstance(x, int):
-            self._speed[0] = x
+            self.set_speed_x(x)
             return
         keep, stock = Coordinate.data_stock_calculate(x)
-        self._speed[0] = keep
+        self.set_speed_x(keep)
         self.speed_stock_x += stock
 
     def update_speed_y(self, y: float or int):
         if isinstance(y, int):
-            self._speed[1] = y
+            self.set_speed_y(y)
             return
         keep, stock = Coordinate.data_stock_calculate(y)
-        self._speed[1] = keep
+        self.set_speed_y(keep)
         self.speed_stock_y += stock
 
     def fix_speed(self, speed_delta):
@@ -121,27 +127,27 @@ class MoveObj(object):
         speed_delta[0], self.speed_stock_x = Coordinate.data_stock_calculate(speed_delta[0])
         speed_delta[1], self.speed_stock_y = Coordinate.data_stock_calculate(speed_delta[1])
 
-        fixed_speed = Coordinate.sum(self._speed, speed_delta)
+        fixed_speed = Coordinate.sum(self.speed, speed_delta)
         self.update_speed(fixed_speed)
 
     def reverse_x(self):
-        self._speed[0] = - self._speed[0]
+        self.set_speed_x(-self.speed[0])
 
     def reverse_y(self):
-        self._speed[1] = - self._speed[1]
+        self.set_speed_y(- self.speed[1])
 
     def rebound(self, by_speed):
-        if (self._speed[0] > 0 > by_speed[0]) or (self._speed[0] < 0 < by_speed[0]):
+        if (self.speed[0] > 0 > by_speed[0]) or (self.speed[0] < 0 < by_speed[0]):
             self.reverse_x()
 
-        if (self._speed[1] > 0 > by_speed[1]) or (self._speed[1] < 0 < by_speed[1]):
+        if (self.speed[1] > 0 > by_speed[1]) or (self.speed[1] < 0 < by_speed[1]):
             self.reverse_y()
 
     def feedback(self, by_speed, by_center, by_mass):
         me_center = getattr(self, 'center')
         other_center = by_center
 
-        me_top = Coordinate.sum(me_center, self._speed)
+        me_top = Coordinate.sum(me_center, self.speed)
         me_ns, me_ts = Coordinate.decompose_vertex(
             [me_center, me_top], [me_center, other_center])
 
@@ -177,7 +183,7 @@ class MoveObj(object):
 
     def _calculate_trends_step(self):
         spf = Clock.get_trend_spf()
-        trends_step = Coordinate.multiply(self._speed, spf)
+        trends_step = Coordinate.multiply(self.speed, spf)
 
         trends_step = Coordinate.sum(trends_step, [self.mv_stock_x, self.mv_stock_y])
         trends_step[0], self.mv_stock_x = Coordinate.data_stock_calculate(trends_step[0])
@@ -244,7 +250,10 @@ class GravityObj(BorderRebound):
         else:
             by_dir = -1
 
-        v_new = Formulas.speed_after_collide(self.mass, by_mass, me_abs_ts / FMR, by_dir * by_abs_ts / FMR, self.k_restitution)
+        v_new = Formulas.speed_after_collide(
+            self.mass, by_mass,
+            me_abs_ts / FMR, by_dir * by_abs_ts / FMR,
+            self.k_restitution)
 
         if me_abs_ts:
             _k = v_new * FMR / me_abs_ts

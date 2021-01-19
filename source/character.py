@@ -1,11 +1,8 @@
-import math
 from copy import deepcopy
-
 import pygame
 import pygame.gfxdraw
 from configs.config import *
-from source.base import PicBase, CMap, DAMap, Global
-from source.event_catcher import EventMonitor
+from source.base import PicBase, CMap, Global
 from source.move_control import FrictionObj, Collide, Gravity
 from source.utils import Coordinate
 
@@ -88,106 +85,3 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
             pygame.gfxdraw.aacircle(self._surface_blit_on, x, y, r, (130, 130, 130))
             pygame.draw.rect(self._surface_blit_on, (130, 130, 130), self.rect, 2)
         PicBase.blit(self)
-
-
-class Billiard(Character):
-
-    def __init__(self, pic_path, scale_rate: float, border_collied_react, color, *args, **kwargs):
-        Character.__init__(self, pic_path, scale_rate, border_collied_react, *args, **kwargs)
-        self.radius = math.ceil(Coordinate.cal_distance([0, 0], [self._rect.w, self._rect.h]) / 2)
-        self.color = color
-
-    def _pic_load(self, *args):
-        return pygame.surface.Surface([1, 1], 0, 8)
-
-    def __map_register(self):
-        return CMap.register(self)
-    
-    def damage_settle(self):
-        for dead_area in DAMap.iter_members():
-            if dead_area.if_touched(self):
-                self.health = 0
-                break
-
-    def blit(self):
-        pygame.draw.circle(self._surface_blit_on, self.color, self.center, self.radius)
-        if TEST_MODE:
-            pygame.draw.rect(self._surface_blit_on, Color.black, self.rect, 2)
-
-
-class TestMe(Character, EventMonitor):
-
-    def __init__(self, *args, **kwargs):
-        Character.__init__(self, *args, **kwargs)
-        EventMonitor.__init__(self)
-        self.mv_speed_x = 3
-        self.mv_speed_y = 3
-        self.mv_speed_x_h = 5
-        self.mv_speed_y_h = 5
-        self.SPEED_UP = False
-        self.LEFT_MOVING = False
-        self.RIGHT_MOVING = False
-        self.UP_MOVING = False
-        self.DOWN_MOVING = False
-
-    def _get_mv_speed(self):
-        if not self.SPEED_UP:
-            return [self.mv_speed_x, self.mv_speed_y]
-        else:
-            return [self.mv_speed_x_h, self.mv_speed_y_h]
-
-    def do_move(self):
-        dx, dy = 0, 0
-        mv_x, mv_y = self._get_mv_speed()
-        if self.LEFT_MOVING:
-            dx -= mv_x
-        if self.RIGHT_MOVING:
-            dx += mv_x
-        if self.UP_MOVING:
-            dy -= mv_y
-        if self.DOWN_MOVING:
-            dy += mv_y
-        self.fix_center(dx, dy)
-        Character.do_move(self)
-
-    def move_left_switch(self, press_state):
-        if press_state == PressState.PRESS:
-            self.LEFT_MOVING = True
-        elif press_state == PressState.RELEASE:
-            self.LEFT_MOVING = False
-
-    def move_right_switch(self, press_state):
-        if press_state == PressState.PRESS:
-            self.RIGHT_MOVING = True
-        elif press_state == PressState.RELEASE:
-            self.RIGHT_MOVING = False
-
-    def move_up_switch(self, press_state):
-        if press_state == PressState.PRESS:
-            self.UP_MOVING = True
-        elif press_state == PressState.RELEASE:
-            self.UP_MOVING = False
-
-    def move_down_switch(self, press_state):
-        if press_state == PressState.PRESS:
-            self.DOWN_MOVING = True
-        elif press_state == PressState.RELEASE:
-            self.DOWN_MOVING = False
-
-    def attach_switch(self, press_state):
-        pass
-
-    def speed_switch(self, press_state):
-        if press_state == PressState.PRESS:
-            self.SPEED_UP = True
-        elif press_state == PressState.RELEASE:
-            self.SPEED_UP = False
-
-    def l_click(self):
-        pass
-
-    def mouse_motion(self):
-        pass
-
-    def l_click_finish(self):
-        pass

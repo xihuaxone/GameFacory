@@ -3,7 +3,8 @@ import time
 import pygame
 import sys
 from configs.config import *
-from source.base import Clock, Global, CMap, DAMap
+from source.base import Clock, Global, CMap, DAMap, UIMap, MenuMap
+from source.event_catcher import WindowEventMonitor
 from source.factories.area_factory import AreaFct
 from source.factories.background_factory import BGFct
 from source.factories.character_factory import CFct
@@ -88,24 +89,25 @@ def run():
             if event.type == pygame.QUIT:
                 sys.exit(0)
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    RUNNING = not RUNNING
-                    break
-
-            if RUNNING:
+            WindowEventMonitor.event_monitor(event)
+            if not WindowEventMonitor.RUNNING:
+                break
+            else:
                 test_me.event_monitor(event)
 
         # mouse_motion_react()
 
-        if not RUNNING:
+        if not WindowEventMonitor.RUNNING:
+            for element in MenuMap.iter_members():
+                element.blit()
+            pygame.display.flip()
+
             Clock.tick(FPS)
             continue
 
-        Global.screen.fill((0, 0, 0))
+        Global.screen.fill(Color.white)
 
         background.blit()
-
         for h in DAMap.iter_members():
             h.blit()
 
@@ -121,6 +123,9 @@ def run():
             character.blit()
 
         CMap.clear_dead()
+
+        for element in UIMap.iter_members():
+            element.blit()
 
         pygame.display.flip()
 

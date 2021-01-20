@@ -40,11 +40,29 @@ Global = GlobalObj()
 
 
 class PicBase(object):
-    def __init__(self):
+    def __init__(self, pic_path, scale_rate=1.0, fit_screen=False, middle=False):
         self._surface_blit_on = Global.screen
+        self._surface = self.scale(self._pic_load(pic_path), scale_rate, fit_screen)
+        self._rect = self._surface.get_rect()
+        if middle:
+            self._rect.centerx = Global.screen_w / 2
+            self._rect.centery = Global.screen_h / 2
 
     def _pic_load(self, path):
         return pygame.image.load(path)
+
+    @staticmethod
+    def scale(surface_pic, scale_rate: float, fit_screen):
+        origin_width, origin_height = surface_pic.get_size()
+        if fit_screen:
+            if origin_width / Global.screen_w > origin_height / Global.screen_h:
+                scale_rate = Global.screen_w / origin_width
+            else:
+                scale_rate = Global.screen_h / origin_height
+        return pygame.transform.scale(
+            surface_pic,
+            (int(origin_width * scale_rate),
+             int(origin_height * scale_rate)))
 
     @property
     def surface(self):
@@ -155,36 +173,36 @@ class MapBase(object):
         for c in self._map.values():
             yield c
 
-    def register(self, character):
+    def register(self, member):
         c_id = random.randint(0, self._max_count)
         while c_id in self._map:
             c_id = random.randint(0, self._max_count)
-        self._map[c_id] = character
+        self._map[c_id] = member
         return c_id
 
-    def drop(self, c_id):
-        self._map.pop(c_id)
+    def drop(self, m_id):
+        self._map.pop(m_id)
 
-    def _get_attr(self, c_id, attr):
-        c = self._map.get(c_id, None)
-        if c:
-            return getattr(c, attr)
+    def _get_attr(self, m_id, attr):
+        m = self._map.get(m_id, None)
+        if m:
+            return getattr(m, attr)
         else:
             return None
 
-    def exist(self, c_id):
-        return c_id in self._map
+    def exist(self, m_id):
+        return m_id in self._map
 
-    def drop_if_exists(self, c_id):
-        if self.exist(c_id):
-            self.drop(c_id)
+    def drop_if_exists(self, m_id):
+        if self.exist(m_id):
+            self.drop(m_id)
 
-    def delay_delete(self, c_id):
-        self.__wait_delete.append(c_id)
+    def delay_delete(self, m_id):
+        self.__wait_delete.append(m_id)
 
     def clear_dead(self):
-        for c_id in self.__wait_delete:
-            self.drop_if_exists(c_id)
+        for m_id in self.__wait_delete:
+            self.drop_if_exists(m_id)
 
 
 class CharacterMap(MapBase):
@@ -205,7 +223,17 @@ class DeadAreaMap(MapBase):
     pass
 
 
+class WindowUIMap(MapBase):
+    pass
+
+
+class MenuUIMap(MapBase):
+    pass
+
+
 CMap = CharacterMap()
 DAMap = DeadAreaMap()
+UIMap = WindowUIMap()
+MenuMap = MenuUIMap()
 
 Clock = GlobalClock()

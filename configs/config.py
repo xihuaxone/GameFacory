@@ -36,6 +36,10 @@ class CollideReaction(object):
     ignore = 'ignore'  # 忽略碰撞（穿过）
 
 
+class UIElements(object):
+    main_menu = 'main_menu'
+
+
 FPS = 300  # 锁帧
 INIT_SCREEN_SIZE = (1920, 1080)
 
@@ -51,7 +55,7 @@ DEFAULT_FRICTION_COEFFICIENT = 0.6  # 默认的动摩擦因数，所有实现摩
 K_GLOBAL_FRICTION = 0.4  # 全局动摩擦因数，如果是平视图画面，则相当于空气摩擦因数；如果是俯视图画面，则相当于地面的动摩擦因数；
 
 TEST_MODE = True  # 测试模式，会显示图形对象的rect矩形边，以及碰撞检测的圆形边缘
-FPS_WATCH = False  # 监控帧率
+FPS_WATCH = True  # 监控帧率
 
 
 class Color(object):

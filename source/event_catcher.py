@@ -1,13 +1,43 @@
 import pygame
 
-from configs.config import PressState
+from configs.config import PressState, UIElements
+from source.base import UIMap
+from source.factories.ui_ele_factory import UIFct
+
+
+class WindowEventMonitor(object):
+    RUNNING = True
+    main_menu_id = None
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def call_menu(cls):
+        menu = UIFct.produce(UIElements.main_menu)
+        cls.main_menu_id = menu.e_id
+
+    @classmethod
+    def close_menu(cls):
+        UIMap.drop_if_exists(cls.main_menu_id)
+
+    @classmethod
+    def menu_switch(cls):
+        cls.RUNNING = not cls.RUNNING
+        if not cls.RUNNING:
+            cls.call_menu()
+        else:
+            cls.close_menu()
+
+    @classmethod
+    def event_monitor(cls, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                cls.menu_switch()
 
 
 class EventMonitor(object):
     def __init__(self):
-        pass
-
-    def checkout_menu(self):
         pass
 
     def catch_mouse_event(self, event, e_type):

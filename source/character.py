@@ -9,12 +9,10 @@ from source.utils import Coordinate
 
 class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
     def __init__(self, pic_path, scale_rate: float, border_collied_react, *args, **kwargs):
-        PicBase.__init__(self)
+        PicBase.__init__(self, pic_path, scale_rate)
         FrictionObj.__init__(self)
         pygame.sprite.Sprite.__init__(self)
         self.border_collied_react = border_collied_react
-        self._surface = self.scale(self._pic_load(pic_path), scale_rate)
-        self._rect = self._surface.get_rect()
         self.mv_fix_x = 0
         self.mv_fix_y = 0
         self.health = 100
@@ -28,15 +26,6 @@ class Character(PicBase, FrictionObj, pygame.sprite.Sprite):
 
     def destroy(self):
         CMap.delay_delete(self.c_id)
-
-    @staticmethod
-    def scale(surface_pic, scale_rate: float):
-        origin_width, origin_height = surface_pic.get_size()
-
-        return pygame.transform.scale(
-            surface_pic,
-            (int(origin_width * scale_rate),
-             int(origin_height * scale_rate)))
 
     def piercing_fix(self, by_center, by_radius):
         fix_vertex = Collide.cal_circle_pierce_fix_vertex(
